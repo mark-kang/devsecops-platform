@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.name }}
+  description: Bicep 기반 인프라 정의와 GitHub Actions가 포함된 표준 웹 서비스
+  annotations:
+    github.com/project-slug: mark-kang/${{ values.name }}
+spec:
+  type: service
+  lifecycle: experimental
+  owner: user:guest

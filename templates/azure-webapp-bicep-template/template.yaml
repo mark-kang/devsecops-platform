@@ -1,0 +1,80 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: azure-webapp-bicep-template
+  namespace: default
+  title: Standard Azure Web App (Bicep)
+  description: Bicep 기반 인프라 정의와 GitHub Actions가 포함된 표준 웹 서비스
+  tags:
+    - azure
+    - bicep
+    - recommended
+spec:
+  owner: user:guest
+  type: service
+
+  parameters:
+    - title: 서비스 기본 정보
+      required:
+        - component_id
+        - runtime
+      properties:
+        component_id:
+          title: 서비스 이름
+          type: string
+          description: GitHub 리포지토리 이름으로 사용됩니다
+          ui:autofocus: true
+        runtime:
+          title: Runtime Stack
+          type: string
+          enum:
+            - 'NODE:18-lts'
+            - 'PYTHON:3.11'
+            - 'DOTNET:7.0'
+          default: 'NODE:18-lts'
+
+    - title: 인프라 설정
+      properties:
+        sku:
+          title: App Service Plan SKU
+          type: string
+          enum:
+            - F1
+            - B1
+            - P1v2
+          default: B1
+          description: "PoC용은 B1(Basic)을 추천합니다."
+
+  steps:
+    - id: fetch-base
+      name: 스켈레톤 복사
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          name: ${{ parameters.component_id }}
+          runtime: ${{ parameters.runtime }}
+          sku: ${{ parameters.sku }}
+
+    - id: publish
+      name: GitHub 게시
+      action: publish:github
+      input:
+        repoUrl: "github.com?owner=mark-kang&repo=${{ parameters.component_id }}"
+        defaultBranch: main
+        description: ${{ parameters.component_id }} - Bicep 기반 Azure Web App
+
+    - id: register
+      name: 카탈로그 등록
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}
