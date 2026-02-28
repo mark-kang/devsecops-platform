@@ -42,8 +42,26 @@ spec:
             - F1
             - B1
             - P1v2
-          default: B1
-          description: "PoC용은 B1(Basic)을 추천합니다."
+          default: F1
+          description: "PoC/테스트용은 F1(Free), 개발 서버는 B1(Basic)을 사용하세요."
+
+    - title: Azure 인증 정보
+      description: GitHub Actions 워크플로가 Azure에 배포하기 위한 인증 정보입니다.
+      required:
+        - azure_credentials
+      properties:
+        azure_credentials:
+          title: AZURE_CREDENTIALS
+          type: string
+          description: "'az ad sp create-for-rbac --json-auth' 명령 출력 JSON 전체를 붙여넣으세요 (subscriptionId 포함)"
+          ui:widget: textarea
+          ui:options:
+            rows: 8
+        azure_resource_group:
+          title: Azure Resource Group
+          type: string
+          default: rg-devsecops
+          description: 배포 대상 리소스 그룹 이름
 
   steps:
     - id: fetch-base
@@ -57,12 +75,15 @@ spec:
           sku: ${{ parameters.sku }}
 
     - id: publish
-      name: GitHub 게시
+      name: GitHub 게시 및 Secret 등록
       action: publish:github
       input:
         repoUrl: "github.com?owner=mark-kang&repo=${{ parameters.component_id }}"
         defaultBranch: main
         description: ${{ parameters.component_id }} - Bicep 기반 Azure Web App
+        secrets:
+          AZURE_CREDENTIALS: ${{ parameters.azure_credentials }}
+          AZURE_RESOURCE_GROUP: ${{ parameters.azure_resource_group }}
 
     - id: register
       name: 카탈로그 등록

@@ -19,9 +19,10 @@ jobs:
 
       # 1. Bicep으로 인프라 프로비저닝 (IaC)
       - name: Deploy Azure Resources
+        id: deploy_infra
         uses: azure/arm-deploy@v1
         with:
-          subscriptionId: ${{ "${{ secrets.AZURE_SUBSCRIPTION_ID }}" }}
+          subscriptionId: ${{ "${{ fromJSON(secrets.AZURE_CREDENTIALS).subscriptionId }}" }}
           resourceGroupName: ${{ "${{ secrets.AZURE_RESOURCE_GROUP }}" }}
           template: ./infra/main.bicep
           parameters: >
@@ -30,8 +31,9 @@ jobs:
             sku=${{ values.sku }}
 
       # 2. 애플리케이션 빌드 및 배포
+      # app-name은 Bicep output(webAppName)에서 가져옴 — uniqueString 접미사 포함된 실제 이름
       - name: Deploy Application Code
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ values.name }}
+          app-name: ${{ "${{ steps.deploy_infra.outputs.webAppName }}" }}
           package: .

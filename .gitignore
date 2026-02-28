@@ -178,3 +178,4 @@ site/
 # Lock files (keep yarn.lock / package-lock.json; ignore others if unwanted)
 # Uncomment the line below if you only use Yarn and want to skip npm lock files:
 # package-lock.json
+scripts/cleanup-azure-webapp.sh
